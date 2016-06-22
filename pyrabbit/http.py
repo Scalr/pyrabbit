@@ -55,7 +55,7 @@ class HTTPClient(object):
 
     """
 
-    def __init__(self, api_url, uname, passwd, timeout=5, scheme='http'):
+    def __init__(self, api_url, uname, passwd, timeout=5, verify=True, scheme=None, api_suffix=None):
         """
         :param string api_url: The base URL for the broker API.
         :param string uname: Username credential used to authenticate.
@@ -66,8 +66,12 @@ class HTTPClient(object):
         """
         self.auth = HTTPBasicAuth(uname, passwd)
         self.timeout = timeout
-        api_url = '%s://%s' % (scheme, api_url)
-        self.base_url = api_url
+        parsed_url = urlparse(api_url)
+        self.base_url = urlunparse((
+            scheme or parsed_url.scheme or 'http',
+            parsed_url.netloc or parsed_url.path,
+            api_suffix or 'api/', '', '', ''))
+        self.verify = verify
 
     def do_call(self, path, method, body=None, headers=None):
         """
@@ -85,7 +89,7 @@ class HTTPClient(object):
         url = urljoin(self.base_url, path)
         try:
             resp = requests.request(method, url, data=body, headers=headers,
-                                    auth=self.auth, timeout=self.timeout)
+                                    auth=self.auth, timeout=self.timeout, verify=self.verify)
         except requests.exceptions.Timeout as out:
             raise NetworkError("Timeout while trying to connect to RabbitMQ")
         except requests.exceptions.RequestException as err:

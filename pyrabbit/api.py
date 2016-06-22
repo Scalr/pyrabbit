@@ -73,28 +73,34 @@ class Client(object):
 
     json_headers = {"content-type": "application/json"}
 
-    def __init__(self, api_url, user, passwd, timeout=5, scheme='http'):
+    def __init__(self, url, user, passwd, timeout=5, verify=True, scheme=None, api_suffix=None):
         """
-        :param string api_url: base url for the broker API
+        :param string url: base url for the broker host. Example: http://localhost:5671
         :param string user: Username used to authenticate to the API.
         :param string passwd: Password used to authenticate to the API.
         :param int timeout: Integer number of seconds to wait for each call.
+        :param bool verify: SSL cerificate verification. Default True for https scheme
         :param string scheme: HTTP scheme used to make the connection
+        :param string api_suffix: Suffix for base api url
 
         Populates server attributes using passed-in parameters and
         the HTTP API's 'overview' information.
         """
-        self.api_url = api_url
+        self.api_url = url
         self.user = user
         self.passwd = passwd
         self.timeout = timeout
         self.scheme = scheme
+        self.verify = verify
+        self.api_suffix = api_suffix
         self.http = http.HTTPClient(
             self.api_url,
             self.user,
             self.passwd,
             self.timeout,
-            self.scheme
+            self.verify,
+            self.scheme,
+            self.api_suffix
         )
 
         return
