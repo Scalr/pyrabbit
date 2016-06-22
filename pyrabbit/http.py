@@ -55,12 +55,7 @@ class HTTPClient(object):
 
     """
 
-    ssl_verify = {
-        'http': None,
-        'https': True
-    }
-
-    def __init__(self, api_url, uname, passwd, timeout=5, scheme='http', verify=None):
+    def __init__(self, api_url, uname, passwd, timeout=5, verify=True, scheme=None, api_suffix=None):
         """
         :param string api_url: The base URL for the broker API.
         :param string uname: Username credential used to authenticate.
@@ -71,9 +66,12 @@ class HTTPClient(object):
         """
         self.auth = HTTPBasicAuth(uname, passwd)
         self.timeout = timeout
-        api_url = '%s://%s' % (scheme, api_url)
-        self.base_url = api_url
-        self.verify = self.ssl_verify.get(scheme) if verify is None else verify
+        parsed_url = urlparse(api_url)
+        self.base_url = urlunparse((
+            scheme or parsed_url.scheme or 'http',
+            parsed_url.netloc or parsed_url.path,
+            api_suffix or 'api/', '', '', ''))
+        self.verify = verify
 
     def do_call(self, path, method, body=None, headers=None):
         """
